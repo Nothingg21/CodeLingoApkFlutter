@@ -1,0 +1,592 @@
+import 'package:flutter/material.dart';
+import 'dart:ui'; // Efek Glass
+import 'dart:math'; // Animasi & Random
+import 'dart:async'; // Timer
+
+void main() {
+  runApp(const CodeLingoApp());
+}
+
+// ==========================================
+// 1. DATA CENTER (KONTEN TETAP LENGKAP)
+// ==========================================
+class DataStore {
+  static const Map<String, Map<String, dynamic>> materials = {
+    "Web Development": {
+      "icon": Icons.language, "color": Colors.pinkAccent,
+      "content": "# Web Development\n\nPengembangan aplikasi berbasis web.\n\n## Frontend\n- HTML: Struktur\n- CSS: Tampilan\n- JS: Interaksi\n\n## Backend\n- Node.js, Python, PHP, Go."
+    },
+    "Database": {
+      "icon": Icons.storage, "color": Colors.indigoAccent,
+      "content": "# Database\n\nSistem penyimpanan data.\n\n## SQL\nMySQL, PostgreSQL (Tabel).\n\n## NoSQL\nMongoDB, Firebase (Dokumen)."
+    },
+    "Jaringan Komputer": {
+      "icon": Icons.hub, "color": Colors.cyanAccent,
+      "content": "# Jaringan\n\nMenghubungkan komputer.\n\n## OSI Layer\n1. Physical\n2. Data Link\n3. Network\n4. Transport\n5. Session\n6. Presentation\n7. Application"
+    },
+    "Artificial Intelligence": {
+      "icon": Icons.psychology, "color": Colors.purpleAccent,
+      "content": "# AI (Kecerdasan Buatan)\n\nSimulasi kecerdasan manusia.\n\n- **Machine Learning**: Belajar dari data.\n- **Deep Learning**: Neural Networks."
+    },
+    "Mobile Development": {
+      "icon": Icons.smartphone, "color": Colors.limeAccent,
+      "content": "# Mobile Dev\n\nMembuat aplikasi HP.\n\n- **Native**: Kotlin (Android), Swift (iOS).\n- **Cross-Platform**: Flutter, React Native."
+    },
+    "Algoritma": {
+      "icon": Icons.code, "color": Colors.greenAccent,
+      "content": "# Algoritma\n\nLangkah penyelesaian masalah.\n\n1. Sequence\n2. Selection\n3. Iteration"
+    },
+  };
+
+  static List<Map<String, dynamic>> getQuestions(int levelId) {
+    return [
+      {"q": "Apa inti dari topik ini?", "opt": ["Struktur Data", "Kecepatan", "Efisiensi", "Semua Benar"], "a": 3, "expl": "Semua elemen tersebut krusial."},
+      {"q": "Tujuannya adalah?", "opt": ["Mempermudah", "Mempersulit", "Merusak", "Iseng"], "a": 0, "expl": "Teknologi adalah alat bantu manusia."},
+    ];
+  }
+}
+
+// ==========================================
+// 2. THEME CONFIG (CYBER BLUE/PURPLE)
+// ==========================================
+class AppColors {
+  static const Color bgDark = Color(0xFF020617);       // Deep Space
+  static const Color cardDark = Color(0xFF0F172A);     // Card Blue
+  static const Color primary = Color(0xFF6366F1);      // Indigo Neon
+  static const Color accent = Color(0xFF00E5FF);       // Cyber Cyan
+  static const Color secondary = Color(0xFFD946EF);    // Neon Pink/Purple
+  static const Color success = Color(0xFF10B981);
+  static const Color warning = Color(0xFFF59E0B);
+  static const Color textWhite = Color(0xFFF8FAFC);
+}
+
+class CodeLingoApp extends StatelessWidget {
+  const CodeLingoApp({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'CodeLingo Ultimate',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: AppColors.bgDark,
+        primaryColor: AppColors.primary,
+        cardColor: AppColors.cardDark,
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(fontFamily: 'Nunito', color: AppColors.textWhite),
+          titleLarge: TextStyle(fontFamily: 'Orbitron', fontWeight: FontWeight.bold),
+        ),
+        colorScheme: const ColorScheme.dark(primary: AppColors.primary, secondary: AppColors.accent),
+      ),
+      home: const RootNavigator(),
+    );
+  }
+}
+
+// ==========================================
+// 3. BACKGROUND ANIMATION (GRID & REALISTIC ROCKET)
+// ==========================================
+class CyberBackground extends StatefulWidget {
+  final Widget child;
+  const CyberBackground({super.key, required this.child});
+  @override State<CyberBackground> createState() => _CyberBackgroundState();
+}
+
+class _CyberBackgroundState extends State<CyberBackground> with TickerProviderStateMixin {
+  late AnimationController _gridCtrl;
+  late AnimationController _rocketCtrl;
+  late AnimationController _wavyCtrl;
+  
+  @override
+  void initState() {
+    super.initState();
+    _gridCtrl = AnimationController(vsync: this, duration: const Duration(seconds: 20))..repeat();
+    // Kecepatan roket melintas (lebih cepat agar dinamis)
+    _rocketCtrl = AnimationController(vsync: this, duration: const Duration(seconds: 5));
+    _wavyCtrl = AnimationController(vsync: this, duration: const Duration(seconds: 8))..repeat();
+    _startRocketLoop();
+  }
+
+  void _startRocketLoop() async {
+    while (mounted) {
+      await Future.delayed(const Duration(seconds: 3)); // Jeda antar lintasan
+      if (mounted) {
+        await _rocketCtrl.forward(from: 0.0);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _gridCtrl.dispose();
+    _rocketCtrl.dispose();
+    _wavyCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        // 1. Base Gradient
+        Container(decoration: const BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF020617), Color(0xFF1E1B4B)], begin: Alignment.topCenter, end: Alignment.bottomCenter))),
+        
+        // 2. Moving Grid (Cyber Floor)
+        Positioned.fill(child: AnimatedBuilder(animation: _gridCtrl, builder: (ctx, child) => CustomPaint(painter: _GridPainter(_gridCtrl.value)))),
+
+        // 3. Particles (Dust)
+        const _CyberParticles(),
+
+        // 4. Realistic Flying Rocket with Fire
+        AnimatedBuilder(
+          animation: _rocketCtrl,
+          builder: (ctx, child) {
+            final double t = _rocketCtrl.value;
+            if (t == 0 || t == 1) return const SizedBox();
+
+            final size = MediaQuery.of(context).size;
+            // Interpolasi Posisi (Diagonal Kiri Bawah -> Kanan Atas)
+            final double x = -150 + (size.width + 300) * t;
+            final double y = size.height + 100 - (size.height + 300) * t;
+
+            // Rotasi -45 derajat agar menghadap ke kanan atas
+            return Positioned(
+              left: x, top: y,
+              child: Transform.rotate(
+                angle: -pi / 4, 
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Badan Roket
+                    Icon(Icons.rocket_rounded, size: 40, color: Colors.white.withOpacity(0.9)),
+                    // Efek Api Nyata (Custom Widget)
+                    Transform.translate(offset: const Offset(0, -15), child: const _RocketFire()),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+
+        // 5. Wavy Small Rocket without Fire
+        AnimatedBuilder(
+          animation: _wavyCtrl,
+          builder: (ctx, child) {
+            final double t = _wavyCtrl.value;
+            final size = MediaQuery.of(context).size;
+            // Path meliuk-liuk: horizontal dari kanan ke kiri, vertical sinusoidal
+            final double x = size.width - (size.width + 100) * t;
+            final double y = size.height / 2 + 50 * sin(2 * pi * t * 3); // 3 gelombang
+
+            return Positioned(
+              left: x, top: y,
+              child: Transform.rotate(
+                angle: pi, // Hadap ke kiri
+                child: Icon(Icons.rocket_rounded, size: 30, color: Colors.white.withOpacity(0.7)),
+              ),
+            );
+          },
+        ),
+
+        // 5. Main Content
+        widget.child,
+      ],
+    );
+  }
+}
+
+// WIDGET API ROKET BERKEDIP
+class _RocketFire extends StatefulWidget {
+  const _RocketFire();
+  @override State<_RocketFire> createState() => _RocketFireState();
+}
+class _RocketFireState extends State<_RocketFire> with SingleTickerProviderStateMixin {
+  late AnimationController _fireCtrl;
+  @override void initState() {
+    super.initState();
+    // Animasi berkedip cepat (flicker)
+    _fireCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 150))..repeat(reverse: true);
+  }
+  @override void dispose() { _fireCtrl.dispose(); super.dispose(); }
+
+  @override Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _fireCtrl,
+      builder: (ctx, child) {
+        return Stack(
+          alignment: Alignment.topCenter,
+          children: [
+            // Api Luar (Oranye Kemerahan)
+            ScaleTransition(
+              scale: Tween(begin: 1.0, end: 1.2).animate(_fireCtrl),
+              child: Container(
+                width: 30, height: 80,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.orange.withOpacity(0.8), Colors.red.withOpacity(0.2), Colors.transparent],
+                    begin: Alignment.topCenter, end: Alignment.bottomCenter
+                  ),
+                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(30))
+                ),
+              ),
+            ),
+            // Api Dalam (Kuning Putih)
+            ScaleTransition(
+              scale: Tween(begin: 0.8, end: 1.0).animate(_fireCtrl),
+              child: Container(
+                margin: const EdgeInsets.only(top: 10),
+                width: 15, height: 50,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.yellow.withOpacity(0.9), Colors.white.withOpacity(0.5), Colors.transparent],
+                    begin: Alignment.topCenter, end: Alignment.bottomCenter
+                  ),
+                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(15))
+                ),
+              ),
+            ),
+          ],
+        );
+      }
+    );
+  }
+}
+
+class _GridPainter extends CustomPainter {
+  final double scrollValue; _GridPainter(this.scrollValue);
+  @override void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = AppColors.primary.withOpacity(0.15)..strokeWidth = 1;
+    double spacing = 50.0; double offset = scrollValue * spacing;
+    for (double i = -spacing + offset; i < size.height; i += spacing) canvas.drawLine(Offset(0, i), Offset(size.width, i), paint);
+    for (double i = 0; i < size.width; i += spacing) canvas.drawLine(Offset(i, 0), Offset(i, size.height), paint);
+  }
+  @override bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+// ==========================================
+// 4. ROOT NAVIGATOR
+// ==========================================
+class RootNavigator extends StatefulWidget {
+  const RootNavigator({super.key});
+  @override State<RootNavigator> createState() => _RootNavigatorState();
+}
+
+class _RootNavigatorState extends State<RootNavigator> {
+  String _view = 'landing';
+  Map<String, String> _users = {};
+  Map<String, String> _names = {};
+  String _activeUser = "Guest";
+  String _activeEmail = "";
+  String _avatar = "https://i.pravatar.cc/150?img=21";
+  int _xp = 0, _coins = 0;
+  List<String> _inventory = [];
+  List<Map<String, dynamic>> levels = [];
+  List<Map<String, dynamic>> _rankData = [];
+  bool _showLaunchRocket = false;
+
+  @override
+  void initState() {
+    super.initState();
+    int id = 0;
+    DataStore.materials.forEach((key, val) {
+      levels.add({"id": id, "title": key, "status": id==0?1:0, "icon": val['icon'], "color": val['color']});
+      id++;
+    });
+    _rankData = List.generate(20, (i) => {"name": "User${100+i}", "xp": 8000-(i*300)+Random().nextInt(100), "color": Colors.primaries[i%Colors.primaries.length], "isMe": false, "avatar": "https://i.pravatar.cc/150?img=${i+1}"});
+  }
+
+  bool _register(String n, String e, String p) {
+    if (_users.containsKey(e)) return false;
+    _users[e] = p; _names[e] = n; return true;
+  }
+  bool _login(String e, String p) {
+    if (_users.containsKey(e) && _users[e] == p) {
+      setState(() {
+        _activeUser = _names[e]!; _activeEmail = e; _xp = 1200; _coins = 500; _view = 'dashboard'; _showLaunchRocket = true;
+        _rankData.removeWhere((e) => e['isMe'] == true);
+        _rankData.add({"name": "$_activeUser", "xp": _xp, "color": AppColors.accent, "isMe": true, "avatar": _avatar});
+        _rankData.sort((a,b)=>b['xp'].compareTo(a['xp']));
+      });
+      return true;
+    } return false;
+  }
+  void _completeLevel(int idx, int s) {
+    setState(() {
+      _xp += s; _coins += 50; levels[idx]['status'] = 2;
+      if (idx < levels.length - 1 && levels[idx+1]['status'] == 0) levels[idx+1]['status'] = 1;
+      int myIdx = _rankData.indexWhere((e) => e['isMe'] == true);
+      if(myIdx != -1) { _rankData[myIdx]['xp'] = _xp; _rankData.sort((a,b)=>b['xp'].compareTo(a['xp'])); }
+    });
+  }
+  void _buy(String i, int p) { if (_coins >= p) setState(() { _coins -= p; _inventory.add(i); }); }
+  void _updateProfile(String n) { setState(() { _activeUser = n; _names[_activeEmail] = n; }); }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(duration: const Duration(milliseconds: 600), child: _getBody());
+  }
+
+  Widget _getBody() {
+    switch (_view) {
+      case 'dashboard': return DashboardLayout(username: _activeUser, avatar: _avatar, xp: _xp, coins: _coins, levels: levels, inventory: _inventory, rankData: _rankData, onLogout: ()=>setState(()=>_view='landing'), onCompleteLevel: _completeLevel, onBuy: _buy, onUpdateProfile: _updateProfile, showLaunchRocket: _showLaunchRocket);
+      case 'auth': return AuthScreen(onBack: ()=>setState(()=>_view='landing'), onLogin: _login, onRegister: _register);
+      default: return LandingScreen(onStart: ()=>setState(()=>_view='auth'));
+    }
+  }
+}
+
+// ==========================================
+// 5. LANDING SCREEN
+// ==========================================
+class LandingScreen extends StatelessWidget {
+  final VoidCallback onStart;
+  const LandingScreen({super.key, required this.onStart});
+
+  @override Widget build(BuildContext context) {
+    return Scaffold(
+      body: CyberBackground(
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(30),
+            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              const Spacer(),
+              const Icon(Icons.smart_toy_rounded, size: 100, color: AppColors.accent),
+              const SizedBox(height: 40),
+              ShaderMask(shaderCallback: (r) => const LinearGradient(colors: [AppColors.accent, AppColors.primary]).createShader(r), child: const Text("CODELINGO", style: TextStyle(fontSize: 42, fontWeight: FontWeight.w900, letterSpacing: 2, color: Colors.white))),
+              const SizedBox(height: 10),
+              const Text("Jelajahi Dunia Cyber.\nBelajar Teknologi Masa Depan.", textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, fontSize: 16)),
+              const Spacer(),
+              _NeonButton(text: "MULAI MISI", onPressed: onStart, isBig: true, fullWidth: true),
+              const SizedBox(height: 30),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ==========================================
+// 6. AUTH SCREEN
+// ==========================================
+class AuthScreen extends StatefulWidget {
+  final VoidCallback onBack; final bool Function(String,String) onLogin; final bool Function(String,String,String) onRegister;
+  const AuthScreen({super.key, required this.onBack, required this.onLogin, required this.onRegister});
+  @override State<AuthScreen> createState() => _AuthScreenState();
+}
+class _AuthScreenState extends State<AuthScreen> {
+  bool _isLogin = true, _load = false;
+  final _nameC = TextEditingController(); final _emailC = TextEditingController(); final _passC = TextEditingController();
+
+  void _submit() async {
+    if(_emailC.text.isEmpty || _passC.text.isEmpty) { _snack("Isi semua data!", Colors.red); return; }
+    setState(()=>_load=true); await Future.delayed(const Duration(seconds: 1));
+    bool ok = _isLogin ? widget.onLogin(_emailC.text, _passC.text) : widget.onRegister(_nameC.text, _emailC.text, _passC.text);
+    if(ok && !_isLogin) { _snack("Berhasil!", AppColors.success); setState(()=>_isLogin=true); } else if(!ok) _snack("Gagal!", Colors.red);
+    setState(()=>_load=false);
+  }
+  void _snack(String m, Color c) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m), backgroundColor: c));
+
+  @override Widget build(BuildContext context) {
+    return Scaffold(
+      body: CyberBackground(
+        child: SafeArea(child: Center(child: SingleChildScrollView(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Align(alignment: Alignment.centerLeft, child: IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: widget.onBack)),
+          const SizedBox(height: 20),
+          Text(_isLogin?"LOGIN SYSTEM":"NEW AGENT", style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1.5)),
+          const SizedBox(height: 40),
+          _GlassCard(padding: const EdgeInsets.all(24), child: Column(children: [
+            if(!_isLogin) ...[_Input(_nameC, "Codename", Icons.badge), const SizedBox(height: 16)],
+            _Input(_emailC, "Email", Icons.email), const SizedBox(height: 16),
+            _Input(_passC, "Passcode", Icons.lock, isPass: true), const SizedBox(height: 30),
+            _NeonButton(text: _load?"LOADING...":(_isLogin?"MASUK":"DAFTAR"), onPressed: _load?(){}:_submit, fullWidth: true)
+          ])),
+          const SizedBox(height: 20),
+          TextButton(onPressed: ()=>setState(()=>_isLogin=!_isLogin), child: Text(_isLogin?"Belum punya akun? Daftar":"Sudah punya akun? Login", style: const TextStyle(color: AppColors.accent)))
+        ])))),
+      ),
+    );
+  }
+}
+
+// ==========================================
+// 7. DASHBOARD LAYOUT
+// ==========================================
+class DashboardLayout extends StatefulWidget {
+  final String username; final String avatar; final int xp, coins; final List<Map<String, dynamic>> levels; final List<String> inventory; final List<Map<String, dynamic>> rankData; final bool showLaunchRocket;
+  final VoidCallback onLogout; final Function(int, int) onCompleteLevel; final Function(String, int) onBuy; final Function(String) onUpdateProfile;
+  const DashboardLayout({super.key, required this.username, required this.avatar, required this.xp, required this.coins, required this.levels, required this.inventory, required this.rankData, required this.showLaunchRocket, required this.onLogout, required this.onCompleteLevel, required this.onBuy, required this.onUpdateProfile});
+  @override State<DashboardLayout> createState() => _DashboardLayoutState();
+}
+
+class _DashboardLayoutState extends State<DashboardLayout> {
+  int _idx = 0;
+  @override Widget build(BuildContext context) {
+    final tabs = [
+      _DashboardHome(username: widget.username, avatar: widget.avatar, xp: widget.xp, coins: widget.coins, rankData: widget.rankData),
+      _BelajarTab(levels: widget.levels, onPlay: (i) => _startQuiz(context, i)),
+      _RankTab(rankData: widget.rankData),
+      _ShopTab(coins: widget.coins, onBuy: widget.onBuy, inventory: widget.inventory),
+      _ProfileTab(username: widget.username, avatar: widget.avatar, xp: widget.xp, coins: widget.coins, onLogout: widget.onLogout, onUpdate: widget.onUpdateProfile),
+    ];
+    return Scaffold(
+      body: CyberBackground(child: SafeArea(child: tabs[_idx])), // Apply BG Here
+      bottomNavigationBar: NavigationBar(
+        backgroundColor: AppColors.cardDark, elevation: 0, height: 65, selectedIndex: _idx, indicatorColor: AppColors.primary.withOpacity(0.5),
+        onDestinationSelected: (i) => setState(() => _idx = i),
+        destinations: const [
+          NavigationDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard, color: Colors.white), label: 'Dash'),
+          NavigationDestination(icon: Icon(Icons.alt_route), selectedIcon: Icon(Icons.alt_route, color: Colors.white), label: 'Belajar'),
+          NavigationDestination(icon: Icon(Icons.emoji_events_outlined), selectedIcon: Icon(Icons.emoji_events, color: Colors.white), label: 'Rank'),
+          NavigationDestination(icon: Icon(Icons.shopping_bag_outlined), selectedIcon: Icon(Icons.shopping_bag, color: Colors.white), label: 'Toko'),
+          NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person, color: Colors.white), label: 'Profil'),
+        ],
+      ),
+    );
+  }
+  void _startQuiz(BuildContext ctx, int idx) { Navigator.push(ctx, MaterialPageRoute(builder: (_) => QuizScreen(idx: idx, lvl: widget.levels[idx], onFin: (s) { widget.onCompleteLevel(idx, s); Navigator.pop(ctx); }))); }
+}
+
+// --- TAB 1: DASHBOARD HOME ---
+class _DashboardHome extends StatefulWidget {
+  final String username; final String avatar; final int xp, coins; final List<Map<String, dynamic>> rankData;
+  const _DashboardHome({required this.username, required this.avatar, required this.xp, required this.coins, required this.rankData});
+  @override State<_DashboardHome> createState() => _DashboardHomeState();
+}
+
+class _DashboardHomeState extends State<_DashboardHome> with TickerProviderStateMixin {
+  late AnimationController _launchCtrl;
+  bool _hasLaunched = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _launchCtrl = AnimationController(vsync: this, duration: const Duration(seconds: 3));
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_hasLaunched) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          _launchCtrl.forward();
+          _hasLaunched = true;
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _launchCtrl.dispose();
+    super.dispose();
+  }
+      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text("Selamat Datang,", style: TextStyle(color: Colors.grey, fontSize: 14)), ShaderMask(shaderCallback: (r)=>const LinearGradient(colors: [AppColors.accent, AppColors.primary]).createShader(r), child: Text("$username 👋", style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)))]),
+        Container(padding: const EdgeInsets.all(2), decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.accent)), child: CircleAvatar(backgroundImage: NetworkImage(avatar), radius: 20))
+      ]),
+      const SizedBox(height: 24),
+      GridView.count(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), crossAxisCount: 2, childAspectRatio: 2.5, crossAxisSpacing: 12, mainAxisSpacing: 12, children: [
+        _StatCard(Icons.bolt, "$xp XP", "Total XP", AppColors.warning), _StatCard(Icons.diamond, "$coins", "Permata", AppColors.success),
+        _StatCard(Icons.local_fire_department, "5 Hari", "Streak", Colors.orange), _StatCard(Icons.shield, "Elite", "Liga", AppColors.secondary),
+      ]),
+      const SizedBox(height: 24),
+      const Text("Misi Harian", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white)), const SizedBox(height: 12),
+      Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: AppColors.cardDark.withOpacity(0.8), borderRadius: BorderRadius.circular(16)), child: Column(children: [_MissionTile("Selesaikan 1 Modul", 0.5, "5/10"), const SizedBox(height: 12), _MissionTile("Jawab Kuis Benar", 0.8, "8/10")])),
+      const SizedBox(height: 24),
+      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text("Top Global 🏆", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white)), const Text("Lihat Semua", style: TextStyle(color: AppColors.accent, fontSize: 12))]),
+      const SizedBox(height: 12),
+      SizedBox(height: 80, child: ListView.builder(scrollDirection: Axis.horizontal, itemCount: top3.length, itemBuilder: (ctx, i) => Container(margin: const EdgeInsets.only(right: 16), child: Column(children: [CircleAvatar(backgroundImage: NetworkImage(top3[i]['avatar']), radius: 24, child: Text(top3[i]['name'][0], style: const TextStyle(color: Colors.white))), const SizedBox(height: 4), Text("#${i+1} ${top3[i]['name'].toString().split(' ')[0]}", style: const TextStyle(fontSize: 10, color: Colors.grey))])))),
+      const SizedBox(height: 24),
+      const Text("Materi Pembelajaran", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white)), const SizedBox(height: 12),
+      GridView.builder(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 1.1), itemCount: materials.length, itemBuilder: (ctx, i) {
+        String key = materials.keys.elementAt(i); var item = materials[key]!;
+        return GestureDetector(onTap: () => _showMateri(context, key, item), child: Container(decoration: BoxDecoration(color: AppColors.cardDark.withOpacity(0.8), borderRadius: BorderRadius.circular(16), border: Border.all(color: (item['color'] as Color).withOpacity(0.3))), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(item['icon'], color: item['color'], size: 32), const SizedBox(height: 10), Text(key, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.white))])));
+      })
+    ]);
+  }
+  Widget _StatCard(IconData i, String v, String l, Color c) => Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: AppColors.cardDark.withOpacity(0.8), borderRadius: BorderRadius.circular(12), border: Border.all(color: c.withOpacity(0.3))), child: Row(children: [Icon(i, color: c, size: 24), const SizedBox(width: 10), Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [Text(v, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)), Text(l, style: const TextStyle(fontSize: 10, color: Colors.grey))])]));
+  Widget _MissionTile(String t, double p, String v) => Row(children: [Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(t, style: const TextStyle(fontSize: 12, color: Colors.white)), const SizedBox(height: 6), LinearProgressIndicator(value: p, color: AppColors.success, backgroundColor: Colors.black26, minHeight: 6, borderRadius: BorderRadius.circular(3))])), const SizedBox(width: 12), Text(v, style: const TextStyle(fontSize: 12, color: Colors.grey))]);
+  void _showMateri(BuildContext ctx, String t, Map<String, dynamic> d) { showModalBottomSheet(context: ctx, isScrollControlled: true, backgroundColor: Colors.transparent, builder: (c) => DraggableScrollableSheet(initialChildSize: 0.9, builder: (_, s) => Container(padding: const EdgeInsets.all(24), decoration: const BoxDecoration(color: AppColors.bgDark, borderRadius: BorderRadius.vertical(top: Radius.circular(30)), border: Border(top: BorderSide(color: AppColors.accent))), child: ListView(controller: s, children: [Row(children: [Icon(d['icon'], color: d['color'], size: 30), const SizedBox(width: 12), Expanded(child: Text(t, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)))]), const Divider(height: 40, color: Colors.white24), Text(d['content'], style: const TextStyle(fontSize: 16, height: 1.7, color: Colors.white70)), const SizedBox(height: 40), _NeonButton(text: "TUTUP", onPressed: ()=>Navigator.pop(c), fullWidth: true)])))); }
+}
+
+// --- TAB 2: BELAJAR (NEON LINES) ---
+class _BelajarTab extends StatelessWidget {
+  final List<Map<String, dynamic>> levels; final Function(int) onPlay;
+  const _BelajarTab({required this.levels, required this.onPlay});
+  @override Widget build(BuildContext context) {
+      var lvl = levels[i];
+      return Column(children: [
+        if(i>0) Container(width: 4, height: 40, decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.5), borderRadius: BorderRadius.circular(2), boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.5), blurRadius: 10)])),
+        GestureDetector(onTap: lvl['status']>0?()=>onPlay(i):null, child: Container(width: 80, height: 80, decoration: BoxDecoration(color: lvl['status']==0?Colors.black54:AppColors.cardDark, shape: BoxShape.circle, border: Border.all(color: lvl['status']==0?Colors.grey:(lvl['status']==2?AppColors.success:AppColors.accent), width: 3), boxShadow: lvl['status']>0?[BoxShadow(color: (lvl['status']==2?AppColors.success:AppColors.accent).withOpacity(0.5), blurRadius: 20)]:[]), child: Icon(lvl['status']==2?Icons.check:(lvl['status']==0?Icons.lock:lvl['icon']), color: Colors.white, size: 32))),
+        const SizedBox(height: 8), Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(color: AppColors.cardDark.withOpacity(0.8), borderRadius: BorderRadius.circular(10)), child: Text(lvl['title'], style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: lvl['status']==0?Colors.grey:Colors.white))), const SizedBox(height: 6)
+      ]);
+    });
+  }
+}
+
+// --- TAB 3: RANK (PODIUM) ---
+class _RankTab extends StatelessWidget {
+  final List<Map<String, dynamic>> rankData;
+  const _RankTab({required this.rankData});
+  @override Widget build(BuildContext context) {
+    final top3 = rankData.take(3).toList(); final rest = rankData.skip(3).toList();
+    return Column(children: [
+      const Padding(padding: EdgeInsets.all(20), child: Text("TOP AGENT", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.accent, letterSpacing: 2))),
+      SizedBox(height: 220, child: Row(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.end, children: [_Pod(2, top3[1], 120, Colors.grey), _Pod(1, top3[0], 160, AppColors.warning), _Pod(3, top3[2], 100, Colors.brown)])),
+      const SizedBox(height: 10),
+      Expanded(child: Container(margin: const EdgeInsets.only(top: 10), decoration: const BoxDecoration(color: AppColors.cardDark, borderRadius: BorderRadius.vertical(top: Radius.circular(30))), child: ListView.separated(padding: const EdgeInsets.all(16), itemCount: rest.length, separatorBuilder: (_,__)=>const Divider(height: 1, color: Colors.white10), itemBuilder: (ctx, i) { final it = rest[i]; return ListTile(contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4), tileColor: it['isMe']?AppColors.primary.withOpacity(0.2):Colors.transparent, leading: CircleAvatar(backgroundImage: NetworkImage(it['avatar']), radius: 20, child: Text("${i+4}", style: const TextStyle(color: Colors.white))), title: Text(it['name'], style: TextStyle(color: it['isMe']?AppColors.accent:Colors.white, fontWeight: it['isMe']?FontWeight.bold:FontWeight.normal)), trailing: Text("${it['xp']} XP", style: const TextStyle(color: AppColors.warning, fontWeight: FontWeight.bold))); })))
+    ]);
+  }
+  Widget _Pod(int r, Map u, double h, Color c) => Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [CircleAvatar(radius: 20, backgroundImage: NetworkImage(u['avatar']), child: Text(u['name'][0], style: const TextStyle(color: Colors.white))), const SizedBox(height: 4), Text(u['name'].toString().split(' ')[0], style: const TextStyle(fontSize: 10, color: Colors.white)), Container(width: 70, height: h, decoration: BoxDecoration(gradient: LinearGradient(colors: [c.withOpacity(0.8), c.withOpacity(0.2)], begin: Alignment.topCenter, end: Alignment.bottomCenter), borderRadius: const BorderRadius.vertical(top: Radius.circular(8)), border: Border.all(color: c)), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Text("#$r", style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)), Text("${u['xp']}", style: const TextStyle(fontSize: 10, color: Colors.white))]))]));
+}
+
+// --- TAB 4: TOKO (SULTAN) ---
+class _ShopTab extends StatelessWidget {
+  final int coins; final Function(String, int) onBuy; final List<String> inventory;
+  const _ShopTab({required this.coins, required this.onBuy, required this.inventory});
+  @override Widget build(BuildContext context) {
+      Container(padding: const EdgeInsets.all(20), decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.primary, AppColors.secondary]), borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.4), blurRadius: 20)]), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text("Credits", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)), Text("$coins C", style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white))])),
+      const SizedBox(height: 30), _Section("BOOSTERS"), _Item("Double XP (1 Hr)", 5000, Icons.bolt, Colors.amber, inventory.contains("Double XP (1 Hr)"), onBuy), _Item("Streak Freeze", 10000, Icons.ac_unit, Colors.cyan, inventory.contains("Streak Freeze"), onBuy), const SizedBox(height: 20), _Section("SULTAN ONLY"), _Item("Quantum Server", 1000000, Icons.dns, Colors.red, inventory.contains("Quantum Server"), onBuy), _Item("Private Satellite", 50000000, Icons.satellite_alt, Colors.purpleAccent, inventory.contains("Private Satellite"), onBuy),
+    ]);
+  }
+  Widget _Section(String t) => Padding(padding: const EdgeInsets.only(bottom: 10), child: Text(t, style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold, letterSpacing: 1)));
+  Widget _Item(String t, int p, IconData i, Color c, bool o, Function(String,int) b) => Container(margin: const EdgeInsets.only(bottom: 12), padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: AppColors.cardDark.withOpacity(0.8), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.white10)), child: Row(children: [Icon(i, color: c, size: 30), const SizedBox(width: 16), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(t, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)), Text(o?"OWNED":"$p C", style: TextStyle(fontSize: 12, color: o?AppColors.success:Colors.grey))])), ElevatedButton(onPressed: o?null:()=>b(t,p), style: ElevatedButton.styleFrom(backgroundColor: o?Colors.grey:AppColors.primary), child: Text(o?"PAID":"BUY"))]));
+}
+
+// --- TAB 5: PROFIL (HOLOGRAPHIC) ---
+class _ProfileTab extends StatelessWidget {
+  final String username; final String avatar; final int xp, coins; final VoidCallback onLogout; final Function(String) onUpdate;
+  const _ProfileTab({required this.username, required this.avatar, required this.xp, required this.coins, required this.onLogout, required this.onUpdate});
+  void _edit(BuildContext ctx) { TextEditingController c = TextEditingController(); showDialog(context: ctx, builder: (_)=>AlertDialog(backgroundColor: AppColors.cardDark, title: const Text("Ganti Nama", style: TextStyle(color: Colors.white)), content: _Input(c, "Nama Baru", Icons.edit), actions: [TextButton(onPressed: (){ if(c.text.isNotEmpty) onUpdate(c.text); Navigator.pop(ctx); }, child: const Text("SIMPAN"))])); }
+  @override Widget build(BuildContext context) {
+    return SingleChildScrollView(padding: const EdgeInsets.all(24), child: Column(children: [
+      Container(padding: const EdgeInsets.all(24), decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), gradient: const LinearGradient(colors: [Color(0xFF240046), Color(0xFF10002B)], begin: Alignment.topLeft, end: Alignment.bottomRight), border: Border.all(color: AppColors.accent.withOpacity(0.5)), boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.5), blurRadius: 20)]), child: Column(children: [Row(children: [CircleAvatar(radius: 40, backgroundImage: NetworkImage(avatar), child: Text(username[0], style: const TextStyle(fontSize: 30, color: Colors.white))), const SizedBox(width: 20), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(username, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)), const Text("Cyber Rank: Elite", style: TextStyle(color: AppColors.accent, fontSize: 12)), const SizedBox(height: 8), Container(height: 4, width: 100, color: AppColors.success)]))]), const SizedBox(height: 20), Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [Column(children: [const Text("XP", style: TextStyle(color: Colors.grey, fontSize: 10)), Text("$xp", style: const TextStyle(fontSize: 18, color: Colors.amber, fontWeight: FontWeight.bold))]), Column(children: [const Text("CREDITS", style: TextStyle(color: Colors.grey, fontSize: 10)), Text("$coins", style: const TextStyle(fontSize: 18, color: AppColors.success, fontWeight: FontWeight.bold))])])])),
+      const SizedBox(height: 30), _Menu("Edit Profil", Icons.edit, ()=>_edit(context)), _Menu("Pengaturan", Icons.settings, (){}), _Menu("Keluar", Icons.logout, onLogout, isRed: true),
+    ]));
+  }
+  Widget _Menu(String t, IconData i, VoidCallback cb, {bool isRed=false}) => Container(margin: const EdgeInsets.only(bottom: 10), decoration: BoxDecoration(color: AppColors.cardDark.withOpacity(0.8), borderRadius: BorderRadius.circular(10)), child: ListTile(leading: Icon(i, color: isRed?Colors.red:Colors.white), title: Text(t, style: TextStyle(color: isRed?Colors.red:Colors.white)), trailing: const Icon(Icons.chevron_right, color: Colors.grey), onTap: cb));
+}
+
+class QuizScreen extends StatefulWidget { final int idx; final Map<String, dynamic> lvl; final Function(int) onFin; const QuizScreen({super.key, required this.idx, required this.lvl, required this.onFin}); @override State<QuizScreen> createState() => _QuizScreenState(); }
+class _QuizScreenState extends State<QuizScreen> {
+  int qI = 0, score = 0; bool fin = false; late List<Map<String, dynamic>> qs;
+  @override void initState() { super.initState(); qs = DataStore.getQuestions(widget.idx); }
+  void _ans(int idx) { if (idx == qs[qI]['a']) { score += 20; ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text("Benar!"), backgroundColor: AppColors.success)); Future.delayed(const Duration(milliseconds: 500), () { if(qI<qs.length-1) setState(()=>qI++); else setState(()=>fin=true); }); } else showDialog(context: context, builder: (c)=>AlertDialog(backgroundColor: AppColors.cardDark, title: const Text("Salah", style: TextStyle(color: Colors.red)), content: Text(qs[qI]['expl'], style: const TextStyle(color: Colors.white)), actions: [TextButton(onPressed: ()=>Navigator.pop(c), child: const Text("COBA LAGI"))])); }
+  @override Widget build(BuildContext context) { if (fin) return Scaffold(backgroundColor: AppColors.bgDark, body: Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.check_circle, size: 80, color: AppColors.success), const Text("SELESAI", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)), const SizedBox(height: 20), _NeonButton(text: "LANJUT", onPressed: ()=>widget.onFin(score))]))); var q = qs[qI]; return Scaffold(backgroundColor: AppColors.bgDark, appBar: AppBar(title: Text("Level ${widget.idx+1}"), backgroundColor: Colors.transparent, foregroundColor: Colors.white), body: Padding(padding: const EdgeInsets.all(24), child: Column(children: [LinearProgressIndicator(value: (qI+1)/qs.length, color: AppColors.accent, backgroundColor: Colors.white10), const SizedBox(height: 40), Text(q['q'], style: const TextStyle(fontSize: 20, color: Colors.white), textAlign: TextAlign.center), const SizedBox(height: 40), ...(q['opt'] as List).asMap().entries.map((e) => Padding(padding: const EdgeInsets.only(bottom: 12), child: SizedBox(width: double.infinity, child: ElevatedButton(onPressed: ()=>_ans(e.key), style: ElevatedButton.styleFrom(backgroundColor: AppColors.cardDark, padding: const EdgeInsets.all(16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: const BorderSide(color: AppColors.primary))), child: Text(e.value, style: const TextStyle(color: Colors.white))))))]))); }
+}
+
+// --- UTILS ---
+class _CyberParticles extends StatefulWidget { const _CyberParticles(); @override State<_CyberParticles> createState() => _BPState(); }
+class _BPState extends State<_CyberParticles> with SingleTickerProviderStateMixin {
+  late AnimationController _c; final List<_Dot> _d = List.generate(20, (i) => _Dot());
+  @override void initState() { super.initState(); _c = AnimationController(vsync: this, duration: const Duration(seconds: 10))..repeat(); Timer.periodic(const Duration(milliseconds: 50), (t) { if(mounted) setState(() { for(var d in _d) d.mov(); }); }); }
+  @override void dispose() { _c.dispose(); super.dispose(); }
+  @override Widget build(BuildContext context) => Stack(children: _d.map((d) => Positioned(left: d.x, top: d.y, child: Opacity(opacity: d.o, child: Container(width: d.s, height: d.s, decoration: BoxDecoration(color: d.c, shape: BoxShape.circle, boxShadow: [BoxShadow(color: d.c, blurRadius: 5)]))))).toList());
+}
+class _Dot { double x=Random().nextDouble()*400, y=Random().nextDouble()*800, s=Random().nextDouble()*3, o=Random().nextDouble()*0.5; Color c = [AppColors.primary, AppColors.accent, Colors.white][Random().nextInt(3)]; void mov() { y-=0.3; if(y<0) { y=800; x=Random().nextDouble()*400; } } }
+class _GlassCard extends StatelessWidget { final Widget child; final EdgeInsets padding; const _GlassCard({required this.child, this.padding=const EdgeInsets.all(16)}); @override Widget build(BuildContext context) => ClipRRect(borderRadius: BorderRadius.circular(20), child: BackdropFilter(filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10), child: Container(padding: padding, decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white10)), child: child))); }
+class _NeonButton extends StatelessWidget { final String text; final VoidCallback onPressed; final bool isBig, fullWidth; const _NeonButton({required this.text, required this.onPressed, this.isBig=false, this.fullWidth=false}); @override Widget build(BuildContext context) => Container(width: fullWidth?double.infinity:null, decoration: BoxDecoration(boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.5), blurRadius: 15)]), child: ElevatedButton(onPressed: onPressed, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: EdgeInsets.all(isBig?20:16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))), child: Text(text, style: TextStyle(fontWeight: FontWeight.bold, fontSize: isBig?16:14, color: Colors.white)))); }
+class _Input extends StatelessWidget { final TextEditingController c; final String h; final IconData i; final bool isPass; const _Input(this.c, this.h, this.i, {this.isPass=false}); @override Widget build(BuildContext context) => TextField(controller: c, obscureText: isPass, style: const TextStyle(color: Colors.white), decoration: InputDecoration(filled: true, fillColor: Colors.black26, hintText: h, hintStyle: const TextStyle(color: Colors.grey), prefixIcon: Icon(i, color: AppColors.accent), border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Colors.white10)), focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: AppColors.accent)))); }
+class _Chip extends StatelessWidget { final IconData i; final String v; final Color c; const _Chip(this.i, this.v, this.c); @override Widget build(BuildContext context) => Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: Colors.black45, borderRadius: BorderRadius.circular(6), border: Border.all(color: c)), child: Row(children: [Icon(i, color: c, size: 14), const SizedBox(width: 4), Text(v, style: TextStyle(color: c, fontWeight: FontWeight.bold))])); }
+extension BlurExt on Widget { Widget blur(double s) => ImageFiltered(imageFilter: ImageFilter.blur(sigmaX: s, sigmaY: s), child: this); }
